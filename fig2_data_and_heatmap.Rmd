@@ -1,0 +1,223 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+```{r}
+#BiocManager::install("curatedMetagenomicData")
+#BiocManager::install("SIAMCAT")
+#BiocManager::install("caret")
+setwd("D:\\单子\\复现论文图")
+```
+
+```{r}
+library(curatedMetagenomicData)
+# Load the curated metagenomic data
+curatedMetagenomicData("YuJ_2015.+")
+
+data <- curatedMetagenomicData("2021-03-31.ThomasAM_2018a.relative_abundance", dryrun = FALSE)
+data[[1]]
+```
+`TreeSummarizedExperiment`是`SummarizedExperiment`的子类，它包含了一个有层次结构（树状结构）的样本信息，用于代表样本间的关系。
+
+`TreeSummarizedExperiment`的主要封装数据结构如下：
+- `colData`：包含描述每个样本特征的数据框，例如样本ID、组别、性别等；
+- `assay`：包含基因表达矩阵或其他表达数据，例如miRNA表达矩阵；
+- `rowRanges`：表示基因行的信息，例如基因ID、基因名称等。
+
+在`TreeSummarizedExperiment`中，层次结构被表示为样本树。样本树（sample tree）是`SummarizedExperiment`对象的一个属性，保存了样本的关系和层次信息。其中，树的节点是样本，叶子节点是样本集群的一个成员，树的边表示样本之间的关系。
+
+可以使用以下方法获取`TreeSummarizedExperiment`对象所含信息：
+- `colData(object)`：返回一个数据框，其中包含样本的特征信息；
+- `assay(object)`：返回一个矩阵或数据框，其中包含样本的表达数据；
+- `rowRanges(object)`：返回一个数据表，其中包含每个基因或特征的相关信息；
+- `rownames(object)`：返回基因或特征的名称。
+
+此外，还有一些方法可以用于获取或设置其他信息，例如：
+- `tree(object)`：返回样本树的信息；
+- `assayNames(object)`：返回表达矩阵的列名（通常是样本）；
+- `colnames(object)`：返回样本特征数据框的列名；
+- `rowData(object)`：返回一个数据表，其中包含每个基因或特征的元数据信息。
+
+综上所述，`TreeSummarizedExperiment`对象可以方便地存储和管理有层次结构的样本信息和表达数据。同时，它提供了一些灵活的方法来获取、查询和操作这些信息。
+
+
+```{r}
+class(data[[1]])
+apdata <- as.data.frame(colData(data[[1]]))
+apdata
+
+aex <- assay(data[[1]])
+aex
+aex <- as.data.frame(t(aex))
+apdata
+aex
+######################常规情况下制造标签 0 1方式
+
+aex$label <- NA
+aex
+aex$label[apdata$study_condition == "control"] <- 0
+aex$label[apdata$study_condition == "CRC"] <- 1
+aex <- aex[complete.cases(aex$label), ]
+aex$label
+write.csv(aex,file = "ThomasAM_2018a.csv")
+```
+
+```{r}
+library(curatedMetagenomicData)
+```
+
+```{r}
+datab <- curatedMetagenomicData("2021-03-31.ThomasAM_2018b.relative_abundance", dryrun = FALSE)
+datab[[1]]
+
+bex <- assay(datab[[1]])
+
+bex <- as.data.frame(t(bex))
+bex
+pdata2018 <- as.data.frame(colData(datab[[1]]))
+
+pdata2018
+######################常规情况下制造标签 0 1方式
+bex$label <- NA
+
+# 根据ZellerGPData中的disease列进行映射
+bex$label[pdata2018$study_condition == "control"] <- 0
+bex$label[pdata2018$study_condition == "CRC"] <- 1
+bex <- bex[complete.cases(bex$label), ]
+
+
+write.csv(bex,file = "ThomasAM_2018b.csv")
+```
+
+```{r}
+```{r}
+ZellerG <- curatedMetagenomicData("2021-03-31.ZellerG_2014.relative_abundance", dryrun = FALSE)
+ZellerGex <- assay(ZellerG[[1]])
+ZellerGex <- as.data.frame(t(ZellerGex))
+ZellerGPData <- as.data.frame(colData(ZellerG[[1]]))
+
+######################常规情况下制造标签 0 1方式
+
+ZellerGex$label <- NA
+
+# 根据ZellerGPData中的disease列进行映射
+ZellerGex$label[ZellerGPData$study_condition == "control"] <- 0
+ZellerGex$label[ZellerGPData$study_condition == "CRC"] <- 1
+ZellerGex <- ZellerGex[complete.cases(ZellerGex$label), ]
+write.csv(ZellerGex,file = "ZellerGex.csv")
+
+```
+
+```{r}
+FengQ <- curatedMetagenomicData("2021-03-31.FengQ_2015.relative_abundance", dryrun = FALSE)
+FengQex <- assay(FengQ[[1]])
+FengQex <- as.data.frame(t(FengQex))
+FengQPData <- as.data.frame(colData(FengQ[[1]]))
+
+######################常规情况下制造标签 0 1方式
+FengQex$label <- NA
+FengQex$label
+# 根据ZellerGPData中的disease列进行映射
+FengQex$label[FengQPData$study_condition == "control"] <- 0
+FengQex$label[FengQPData$study_condition == "CRC"] <- 1
+FengQex <- FengQex[complete.cases(FengQex$label), ]
+
+write.csv(FengQex,file = "FengQex.csv")
+```
+
+
+```{r}
+YuJ <- curatedMetagenomicData("2021-03-31.YuJ_2015.relative_abundance", dryrun = FALSE)
+YuJex <- assay(YuJ[[1]])
+YuJex <- as.data.frame(t(YuJex))
+YuJex #128
+YuJPData <- as.data.frame(colData(YuJ[[1]]))
+
+######################常规情况下制造标签 0 1方式
+YuJex$label <- NA
+
+# 根据ZellerGPData中的disease列进行映射
+YuJex$label[YuJPData$study_condition == "control"] <- 0
+YuJex$label[YuJPData$study_condition == "CRC"] <- 1
+
+YuJex <- YuJex[complete.cases(YuJex$label), ]
+YuJex
+write.csv(YuJex,file = "YuJex.csv")
+```
+
+```{r}
+VogtmannE <- curatedMetagenomicData("2021-03-31.VogtmannE_2016.relative_abundance", dryrun = FALSE)
+VogtmannEex <- assay(VogtmannE[[1]])
+VogtmannEex <- as.data.frame(t(VogtmannEex))
+VogtmannEPData <- as.data.frame(colData(VogtmannE[[1]]))
+VogtmannEPData
+
+######################常规情况下制造标签 0 1方式
+VogtmannEex$label <- NA
+
+# 根据ZellerGPData中的disease列进行映射
+VogtmannEex$label[VogtmannEPData$study_condition == "control"] <- 0
+VogtmannEex$label[VogtmannEPData$study_condition == "CRC"] <- 1
+
+VogtmannEex <- VogtmannEex[complete.cases(VogtmannEex$label), ]
+
+write.csv(VogtmannEex,file = "VogtmannEex.csv")
+
+```
+
+```{r}
+HanniganGD <- curatedMetagenomicData("2021-03-31.HanniganGD_2017.relative_abundance", dryrun = FALSE)
+HanniganGDex <- assay(HanniganGD[[1]])
+HanniganGDex <- as.data.frame(t(HanniganGDex))
+HanniganGDPData <- as.data.frame(colData(HanniganGD[[1]]))
+HanniganGDPData
+
+######################常规情况下制造标签 0 1方式
+HanniganGDex$label <- NA
+
+# 根据ZellerGPData中的disease列进行映射
+HanniganGDex$label[HanniganGDPData$study_condition == "control"] <- 0
+HanniganGDex$label[HanniganGDPData$study_condition == "CRC"] <- 1
+
+HanniganGDex <- HanniganGDex[complete.cases(HanniganGDex$label), ]
+
+write.csv(HanniganGDex,file = "HanniganGDex.csv")
+```
+
+
+
+```{r}
+#heatmap
+
+mydata <- read.csv("D://单子//复现论文图//heatmap.csv")
+row.names(mydata)<- mydata$X
+
+mydata <- mydata[,-1]
+
+library(ggplot2)
+
+# 创建一个示例数据框
+data <- as.matrix(mydata)
+data
+
+# 将数据转换为长格式
+data_long <- reshape2::melt(data)
+data_long
+# 绘制热力图
+
+ggplot(data_long, aes(x = Var2, y = Var1, fill = value)) +
+  geom_tile() +
+  geom_text(aes(label = round(value, 2)), color = "black") +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(title = "Heatmap", x = "Columns", y = "Rows") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
